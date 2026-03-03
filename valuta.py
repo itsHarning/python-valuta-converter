@@ -1,6 +1,6 @@
 import argparse
 import requests
-from dotenv import set_key, load_dotenv
+from dotenv import load_dotenv, set_key
 from os import getenv
 
 parser = argparse.ArgumentParser(
@@ -21,23 +21,24 @@ if args.key is not None:
     set_key('.env', 'KEY', args.key)
     API_KEY = args.key
 
-print('Supported valutas')
+print('Valutas should be written in the IS 4217 standard, such as')
 print('USD, EUR, GBP, DKK')
 
-firstValuta = input('Input valuta to convert from: ')
-secondValuta = input('Input valuta to convert to: ')
+first_currency = input('Input valuta to convert from: ')
+second_currency = input('Input valuta to convert to: ')
+print('amount is optional, if you just want to see convertion rate')
 amount = input('Input amount to convert: ')
 
-URL = f'https://v6.exchangerate-api.com/v6/{API_KEY}/pair/USD/DKK/10'
+URL = f'https://v6.exchangerate-api.com/v6/{API_KEY}/pair/{first_currency}/{second_currency}/{amount}'
 
 res = requests.get(URL)
 
 data = res.json()
 
-if str(data['result']) == 'error':
-    if str(data['error-type']) == 'invalid-key':
+if data['result'] == 'error':
+    if data['error-type'] == 'invalid-key':
         print('Invalid key')
-        print('Make sure to run the program with  \'python3 valuta.py -key VALID_KEY\'')
+        print('Make sure to run the program with  \'python3 valuta.py -key [VALID_KEY]\'')
         exit()
     else:
         print('There was an error')
@@ -45,5 +46,7 @@ if str(data['result']) == 'error':
         print('such as EUR for euro or DKK for danish kroner')
         exit()
 
-print('Convertion rate: ' + str(data['conversion_rate']))
-print('Your convertion is : ' + str(data['conversion_result']) + ' ' + str(data['target_code']))
+print(f'Convertion rate: {data["conversion_rate"]}')
+
+if amount != '':
+    print(f'{amount}{data["base_code"]} is: {data["conversion_result"]:.2f}{str(data["target_code"])}')
